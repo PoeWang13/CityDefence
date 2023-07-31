@@ -1,8 +1,6 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Random = UnityEngine.Random;
 
 public class Map
 {
@@ -29,34 +27,34 @@ public class Map_Manager : MonoBehaviour
 {
     [SerializeField] private int width;
     [SerializeField] private int height;
-    [SerializeField] private Transform mapParent;
+    [SerializeField] private Transform wayParent;
     [SerializeField] private MapGrid[] mapGrids;
-    [SerializeField] private Vector2Int[] crossWaysSize = new Vector2Int[1] { new Vector2Int(3, 3) };
+    [SerializeField] private Vector2Int[] loopWaysSize = new Vector2Int[1] { new Vector2Int(3, 3) };
 
     private Map myMap;
     private List<Vector2Int> way = new List<Vector2Int>();
-    public Vector2Int[] CrossWaysSize { get { return crossWaysSize; } }
+    public Vector2Int[] LoopWaysSize { get { return loopWaysSize; } }
     private void Start()
     {
         myMap = new Map(width, height);
         StartCoroutine(Create());
     }
     #region Create Map
-    [ContextMenu("ReOrder Cross Way List")]
-    public void ReOrderCrossWayList()
+    [ContextMenu("ReOrder Loop Way List")]
+    public void ReOrderLoopWayList()
     {
-        for (int h = 0; h < crossWaysSize.Length - 1; h++)
+        for (int h = 0; h < loopWaysSize.Length - 1; h++)
         {
-            for (int e = h + 1; e < crossWaysSize.Length; e++)
+            for (int e = h + 1; e < loopWaysSize.Length; e++)
             {
                 // Check vectors maqnitude
-                if (crossWaysSize[e].sqrMagnitude > crossWaysSize[h].sqrMagnitude)
+                if (loopWaysSize[e].sqrMagnitude > loopWaysSize[h].sqrMagnitude)
                 {
                     // if second vector bigger than first vector, change these two vectors.
-                    Vector2Int aVector = crossWaysSize[e];
+                    Vector2Int aVector = loopWaysSize[e];
 
-                    crossWaysSize[e] = crossWaysSize[h];
-                    crossWaysSize[h] = aVector;
+                    loopWaysSize[e] = loopWaysSize[h];
+                    loopWaysSize[h] = aVector;
                 }
             }
         }
@@ -66,12 +64,18 @@ public class Map_Manager : MonoBehaviour
     {
         myMap = new Map(width, height);
         way.Clear();
-        for (int e = mapParent.childCount - 1; e >= 0; e--)
+        for (int e = wayParent.childCount - 1; e >= 0; e--)
         {
-            Destroy(mapParent.GetChild(e).gameObject);
+            Destroy(wayParent.GetChild(e).gameObject);
         }
         StartCoroutine(Create());
     }
+    /// <summary>
+    /// 1- Create Map Way
+    /// 2- Control For Cross Way
+    /// 3- Calculate Way Object's neighbor count
+    /// 4- Create Way and other objects.
+    /// </summary>
     IEnumerator Create()
     {
         // Create way
@@ -93,13 +97,13 @@ public class Map_Manager : MonoBehaviour
             {
                 if (myMap.map[h, e] != -1)
                 {
-                    GameObject gridObject = Instantiate(mapGrids[myMap.map[h, e]].gridPrefab, new Vector3(h, 0, e), Quaternion.identity, mapParent);
+                    GameObject gridObject = Instantiate(mapGrids[myMap.map[h, e]].gridPrefab, new Vector3(h, 0, e), Quaternion.identity, wayParent);
                     gridObject.transform.localEulerAngles = new Vector3(0, mapGrids[myMap.map[h, e]].yRot, 0);
                     yield return new WaitForSeconds(0.25f);
                 }
                 else
                 {
-
+                    // Here you will create the objects for the parts of the area where there is no path.
                 }
             }
         }
@@ -126,15 +130,15 @@ public class Map_Manager : MonoBehaviour
             }
             yield return null;
         }
-    } 
+    }
     #endregion
 
-    #region Cross Way Control
+    #region Loop Way Control
     private bool RightUpWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < crossWaysSize.Length; c++)
+        for (int c = 0; c < loopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = crossWaysSize[c];
+            Vector2Int newCrossWaySize = loopWaysSize[c];
             if (!(wayPos.x > 0 && wayPos.x < width - newCrossWaySize.x && wayPos.y > 0 && wayPos.y < height - newCrossWaySize.y))
             {
                 // WayPos not in limit
@@ -168,19 +172,19 @@ public class Map_Manager : MonoBehaviour
                         // Add points to use to the list.
                         if ((h == 0 || h == newCrossWaySize.x - 1) && e >= 0 && e <= newCrossWaySize.y - 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                         // Add points to use to the list.
                         if ((e == 0 || e == newCrossWaySize.y - 1) && h >= 0 && h <= newCrossWaySize.x - 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                     }
                 }
             }
             if (canCreateCrossWay)
             {
-                CreateCrossWay(order, newCrossWay);
+                CreateLoopWay(order, newCrossWay);
                 Debug.Log("Can Create Right Up Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
@@ -189,9 +193,9 @@ public class Map_Manager : MonoBehaviour
     }
     private bool RightDownWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < crossWaysSize.Length; c++)
+        for (int c = 0; c < loopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = crossWaysSize[c];
+            Vector2Int newCrossWaySize = loopWaysSize[c];
             if (!(wayPos.x > 0 && wayPos.x < width - newCrossWaySize.x && wayPos.y > newCrossWaySize.y - 1 && wayPos.y < height - 1))
             {
                 // WayPos not in limit
@@ -226,19 +230,19 @@ public class Map_Manager : MonoBehaviour
                         // Add points to use to the list.
                         if ((h == 0 || h == newCrossWaySize.x - 1) && e <= 0 && e >= newCrossWaySize.y + 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                         // Add points to use to the list.
                         if ((e == 0 || e == newCrossWaySize.y + 1) && h >= 0 && h <= newCrossWaySize.x - 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                     }
                 }
             }
             if (canCreateCrossWay)
             {
-                CreateCrossWay(order, newCrossWay);
+                CreateLoopWay(order, newCrossWay);
                 Debug.Log("Can Create Right Down Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
@@ -247,9 +251,9 @@ public class Map_Manager : MonoBehaviour
     }
     private bool LeftUpWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < crossWaysSize.Length; c++)
+        for (int c = 0; c < loopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = crossWaysSize[c];
+            Vector2Int newCrossWaySize = loopWaysSize[c];
             if (!(wayPos.x > newCrossWaySize.x && wayPos.x < width - 1 && wayPos.y > 0 && wayPos.y < height - newCrossWaySize.y))
             {
                 // WayPos not in limit
@@ -284,19 +288,19 @@ public class Map_Manager : MonoBehaviour
                         // Add points to use to the list.
                         if ((h == 0 || h == newCrossWaySize.x + 1) && e >= 0 && e <= newCrossWaySize.y - 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                         // Add points to use to the list.
                         if ((e == 0 || e == newCrossWaySize.y - 1) && h <= 0 && h >= newCrossWaySize.x + 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                     }
                 }
             }
             if (canCreateCrossWay)
             {
-                CreateCrossWay(order, newCrossWay);
+                CreateLoopWay(order, newCrossWay);
                 Debug.Log("Can Create Left Up Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
@@ -305,9 +309,9 @@ public class Map_Manager : MonoBehaviour
     }
     private bool LeftDownWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < crossWaysSize.Length; c++)
+        for (int c = 0; c < loopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = crossWaysSize[c];
+            Vector2Int newCrossWaySize = loopWaysSize[c];
             if (!(wayPos.x > newCrossWaySize.x - 1 && wayPos.x < width - 1 && wayPos.y > newCrossWaySize.y - 1 && wayPos.y < height - 1))
             {
                 // WayPos not in limit
@@ -342,33 +346,33 @@ public class Map_Manager : MonoBehaviour
                         // Add points to use to the list.
                         if ((h == 0 || h == newCrossWaySize.x + 1) && e <= 0 && e >= newCrossWaySize.y + 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                         // Add points to use to the list.
                         if ((e == 0 || e == newCrossWaySize.y + 1) && h <= 0 && h >= newCrossWaySize.x + 1)
                         {
-                            MakeListForCrossWay(newPos, newCrossWay);
+                            MakeListForLoopWay(newPos, newCrossWay);
                         }
                     }
                 }
             }
             if (canCreateCrossWay)
             {
-                CreateCrossWay(order, newCrossWay);
+                CreateLoopWay(order, newCrossWay);
                 Debug.Log("Can Create Left Down Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
         }
         return false;
     }
-    private void MakeListForCrossWay(Vector2Int newPos, List<Vector2Int> newCrossWay)
+    private void MakeListForLoopWay(Vector2Int newPos, List<Vector2Int> newCrossWay)
     {
         if (!newCrossWay.Contains(newPos))
         {
             newCrossWay.Add(newPos);
         }
     }
-    private void CreateCrossWay(int order, List<Vector2Int> newCrossWay)
+    private void CreateLoopWay(int order, List<Vector2Int> newCrossWay)
     {
         way.InsertRange(order + 1, newCrossWay);
         for (int e = 0; e < newCrossWay.Count; e++)
