@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bffb6f628f62f1345be8f6594012b15b, type: 3}
+  m_Name: Way_14_Right_Down_Left
+  m_EditorClassIdentifier: 
+  gridPrefab: {fileID: 546939162191939045, guid: b2031d6910864cc4a81b435131669f3a,
+    type: 3}
+  yRot: 180
