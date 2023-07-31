@@ -17,7 +17,7 @@ public class Map_Manager_Editor : Editor
         height = serializedObject.FindProperty("height");
         wayParent = serializedObject.FindProperty("wayParent");
         mapGrids = serializedObject.FindProperty("mapGrids");
-        loopWaysSize = serializedObject.FindProperty("crossWaysSize");
+        loopWaysSize = serializedObject.FindProperty("loopWaysSize");
     }
     public override void OnInspectorGUI()
     {

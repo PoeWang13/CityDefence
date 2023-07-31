@@ -18646,7 +18646,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 10
   height: 10
-  mapParent: {fileID: 376923398}
+  wayParent: {fileID: 376923398}
   mapGrids:
   - {fileID: 11400000, guid: f62e17df7879ad74c82605cec5ca8461, type: 2}
   - {fileID: 11400000, guid: a1af842141daeae47bf2c1b03eabce54, type: 2}
@@ -18664,8 +18664,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 890477b0c27238143874bcf65a761b65, type: 2}
   - {fileID: 11400000, guid: 9ee18c244ffacd445a9709772fc7fc7e, type: 2}
   - {fileID: 11400000, guid: 4e4fbd472bf99c643bcd4d1914e2560b, type: 2}
-  crossWaysSize:
-  - {x: 5, y: 5}
+  loopWaysSize:
   - {x: 3, y: 3}
 --- !u!4 &1427083013
 Transform:
