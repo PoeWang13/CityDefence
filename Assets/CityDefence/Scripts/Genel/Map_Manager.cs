@@ -28,12 +28,14 @@ public class Map_Manager : MonoBehaviour
     [SerializeField] private int width;
     [SerializeField] private int height;
     [SerializeField] private Transform wayParent;
+    [Header("Map grid objects for path.")]
     [SerializeField] private MapGrid[] mapGrids;
-    [SerializeField] private Vector2Int[] loopWaysSize = new Vector2Int[1] { new Vector2Int(3, 3) };
+    [Header("Loop Size - Should be from big to small.")]
+    [SerializeField] private Vector2Int[] pathLoopWaysSize = new Vector2Int[1] { new Vector2Int(3, 3) };
 
     private Map myMap;
     private List<Vector2Int> way = new List<Vector2Int>();
-    public Vector2Int[] LoopWaysSize { get { return loopWaysSize; } }
+    public Vector2Int[] LoopWaysSize { get { return pathLoopWaysSize; } }
     private void Start()
     {
         myMap = new Map(width, height);
@@ -43,18 +45,18 @@ public class Map_Manager : MonoBehaviour
     [ContextMenu("ReOrder Loop Way List")]
     public void ReOrderLoopWayList()
     {
-        for (int h = 0; h < loopWaysSize.Length - 1; h++)
+        for (int h = 0; h < pathLoopWaysSize.Length - 1; h++)
         {
-            for (int e = h + 1; e < loopWaysSize.Length; e++)
+            for (int e = h + 1; e < pathLoopWaysSize.Length; e++)
             {
                 // Check vectors maqnitude
-                if (loopWaysSize[e].sqrMagnitude > loopWaysSize[h].sqrMagnitude)
+                if (pathLoopWaysSize[e].sqrMagnitude > pathLoopWaysSize[h].sqrMagnitude)
                 {
                     // if second vector bigger than first vector, change these two vectors.
-                    Vector2Int aVector = loopWaysSize[e];
+                    Vector2Int aVector = pathLoopWaysSize[e];
 
-                    loopWaysSize[e] = loopWaysSize[h];
-                    loopWaysSize[h] = aVector;
+                    pathLoopWaysSize[e] = pathLoopWaysSize[h];
+                    pathLoopWaysSize[h] = aVector;
                 }
             }
         }
@@ -97,14 +99,16 @@ public class Map_Manager : MonoBehaviour
             {
                 if (myMap.map[h, e] != -1)
                 {
-                    GameObject gridObject = Instantiate(mapGrids[myMap.map[h, e]].gridPrefab, new Vector3(h, 0, e), Quaternion.identity, wayParent);
-                    gridObject.transform.localEulerAngles = new Vector3(0, mapGrids[myMap.map[h, e]].yRot, 0);
-                    yield return new WaitForSeconds(0.25f);
+                    // Here you will create the objects for the parts of the area where there is path.
+                    CreatePathObject(h, e);
+                    yield return new WaitForSeconds(0.05f);
                 }
                 else
                 {
                     // Here you will create the objects for the parts of the area where there is no path.
+                    CreateMapObject(h, e);
                 }
+                //yield return new WaitForSeconds(0.05f);
             }
         }
         yield return null;
@@ -115,10 +119,10 @@ public class Map_Manager : MonoBehaviour
         while (order < way.Count)
         {
             Vector2Int wayPos = way[order];
-            bool canCreateRightUpWay = RightUpWayControl(wayPos, order);
-            bool canCreateRightDownWay = RightDownWayControl(wayPos, order);
-            bool canCreateLeftUpWay = LeftUpWayControl(wayPos, order);
-            bool canCreateLeftDownWay = LeftDownWayControl(wayPos, order);
+            bool canCreateRightUpWay = RightUpLoopWayControl(wayPos, order);
+            bool canCreateRightDownWay = RightDownLoopWayControl(wayPos, order);
+            bool canCreateLeftUpWay = LeftUpLoopWayControl(wayPos, order);
+            bool canCreateLeftDownWay = LeftDownLoopWayControl(wayPos, order);
 
             if (canCreateRightUpWay || canCreateRightDownWay || canCreateLeftUpWay || canCreateLeftDownWay)
             {
@@ -134,11 +138,11 @@ public class Map_Manager : MonoBehaviour
     #endregion
 
     #region Loop Way Control
-    private bool RightUpWayControl(Vector2Int wayPos, int order)
+    private bool RightUpLoopWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < loopWaysSize.Length; c++)
+        for (int c = 0; c < pathLoopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = loopWaysSize[c];
+            Vector2Int newCrossWaySize = pathLoopWaysSize[c];
             if (!(wayPos.x > 0 && wayPos.x < width - newCrossWaySize.x && wayPos.y > 0 && wayPos.y < height - newCrossWaySize.y))
             {
                 // WayPos not in limit
@@ -185,17 +189,17 @@ public class Map_Manager : MonoBehaviour
             if (canCreateCrossWay)
             {
                 CreateLoopWay(order, newCrossWay);
-                Debug.Log("Can Create Right Up Way : " + order + " + Way Point : " + way[order]);
+                //Debug.Log("Can Create Right Up Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
         }
         return false;
     }
-    private bool RightDownWayControl(Vector2Int wayPos, int order)
+    private bool RightDownLoopWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < loopWaysSize.Length; c++)
+        for (int c = 0; c < pathLoopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = loopWaysSize[c];
+            Vector2Int newCrossWaySize = pathLoopWaysSize[c];
             if (!(wayPos.x > 0 && wayPos.x < width - newCrossWaySize.x && wayPos.y > newCrossWaySize.y - 1 && wayPos.y < height - 1))
             {
                 // WayPos not in limit
@@ -243,17 +247,17 @@ public class Map_Manager : MonoBehaviour
             if (canCreateCrossWay)
             {
                 CreateLoopWay(order, newCrossWay);
-                Debug.Log("Can Create Right Down Way : " + order + " + Way Point : " + way[order]);
+                //Debug.Log("Can Create Right Down Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
         }
         return false;
     }
-    private bool LeftUpWayControl(Vector2Int wayPos, int order)
+    private bool LeftUpLoopWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < loopWaysSize.Length; c++)
+        for (int c = 0; c < pathLoopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = loopWaysSize[c];
+            Vector2Int newCrossWaySize = pathLoopWaysSize[c];
             if (!(wayPos.x > newCrossWaySize.x && wayPos.x < width - 1 && wayPos.y > 0 && wayPos.y < height - newCrossWaySize.y))
             {
                 // WayPos not in limit
@@ -301,17 +305,17 @@ public class Map_Manager : MonoBehaviour
             if (canCreateCrossWay)
             {
                 CreateLoopWay(order, newCrossWay);
-                Debug.Log("Can Create Left Up Way : " + order + " + Way Point : " + way[order]);
+                //Debug.Log("Can Create Left Up Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
         }
         return false;
     }
-    private bool LeftDownWayControl(Vector2Int wayPos, int order)
+    private bool LeftDownLoopWayControl(Vector2Int wayPos, int order)
     {
-        for (int c = 0; c < loopWaysSize.Length; c++)
+        for (int c = 0; c < pathLoopWaysSize.Length; c++)
         {
-            Vector2Int newCrossWaySize = loopWaysSize[c];
+            Vector2Int newCrossWaySize = pathLoopWaysSize[c];
             if (!(wayPos.x > newCrossWaySize.x - 1 && wayPos.x < width - 1 && wayPos.y > newCrossWaySize.y - 1 && wayPos.y < height - 1))
             {
                 // WayPos not in limit
@@ -359,7 +363,7 @@ public class Map_Manager : MonoBehaviour
             if (canCreateCrossWay)
             {
                 CreateLoopWay(order, newCrossWay);
-                Debug.Log("Can Create Left Down Way : " + order + " + Way Point : " + way[order]);
+                //Debug.Log("Can Create Left Down Way : " + order + " + Way Point : " + way[order]);
                 return true;
             }
         }
@@ -477,6 +481,15 @@ public class Map_Manager : MonoBehaviour
         }
         myMap.map[vector2Int.x, vector2Int.y] = cellValue;
         return cellValue;
-    } 
+    }
+    private void CreatePathObject(int h, int e)
+    {
+        GameObject gridObject = Instantiate(mapGrids[myMap.map[h, e]].gridPrefab, new Vector3(h, 0, e), Quaternion.identity, wayParent);
+        gridObject.transform.localEulerAngles = new Vector3(0, mapGrids[myMap.map[h, e]].yRot, 0);
+    }
+    private void CreateMapObject(int h, int e)
+    {
+        // Tree, Rock, Source, Empty Area etc.
+    }
     #endregion
 }

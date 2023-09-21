@@ -8,7 +8,7 @@ public class Map_Manager_Editor : Editor
     private SerializedProperty height;
     private SerializedProperty wayParent;
     private SerializedProperty mapGrids;
-    private SerializedProperty loopWaysSize;
+    private SerializedProperty pathLoopWaysSize;
 
     private Map_Manager map_Manager;
     private void OnEnable()
@@ -17,7 +17,7 @@ public class Map_Manager_Editor : Editor
         height = serializedObject.FindProperty("height");
         wayParent = serializedObject.FindProperty("wayParent");
         mapGrids = serializedObject.FindProperty("mapGrids");
-        loopWaysSize = serializedObject.FindProperty("loopWaysSize");
+        pathLoopWaysSize = serializedObject.FindProperty("pathLoopWaysSize");
     }
     public override void OnInspectorGUI()
     {
@@ -30,22 +30,22 @@ public class Map_Manager_Editor : Editor
         EditorGUILayout.PropertyField(mapGrids);
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.Space();
-        EditorGUILayout.HelpBox("After change close and open the list for sorting.", MessageType.Warning);
-        EditorGUILayout.PropertyField(loopWaysSize);
+        EditorGUILayout.HelpBox("After change the list, Close and open the list for sorting.", MessageType.Warning);
+        EditorGUILayout.PropertyField(pathLoopWaysSize);
         if (EditorGUI.EndChangeCheck())
         {
-            int crossWaysSizeLenght = loopWaysSize.arraySize - 1;
+            int crossWaysSizeLenght = pathLoopWaysSize.arraySize - 1;
             for (int e = crossWaysSizeLenght; e >= 0; e--)
             {
-                Vector2Int crossWaysSizeElement = loopWaysSize.GetArrayElementAtIndex(e).vector2IntValue;
+                Vector2Int crossWaysSizeElement = pathLoopWaysSize.GetArrayElementAtIndex(e).vector2IntValue;
                 if (crossWaysSizeElement.x < 3)
                 {
-                    loopWaysSize.GetArrayElementAtIndex(e).vector2IntValue = new Vector2Int(3, crossWaysSizeElement.y);
+                    pathLoopWaysSize.GetArrayElementAtIndex(e).vector2IntValue = new Vector2Int(3, crossWaysSizeElement.y);
                     Debug.LogWarning("Cross Way Size X and Y should be min 3.");
                 }
                 if (crossWaysSizeElement.y < 3)
                 {
-                    loopWaysSize.GetArrayElementAtIndex(e).vector2IntValue = new Vector2Int(crossWaysSizeElement.x, 3);
+                    pathLoopWaysSize.GetArrayElementAtIndex(e).vector2IntValue = new Vector2Int(crossWaysSizeElement.x, 3);
                     Debug.LogWarning("Cross Way Size X and Y should be min 3.");
                 }
             }
