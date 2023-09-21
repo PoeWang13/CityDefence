@@ -13,7 +13,7 @@ WayParent is your way objects parent.
 
 MapGrids is your areas grid.
 
-LoopWaysSize is a list of loops that can occur when creating paths.
+PathLoopWaysSize is a list of loops that can occur when creating paths.
 
 
 
