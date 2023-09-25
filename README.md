@@ -1,3 +1,8 @@
+# Bilgilendirme Videosu
+How to arrange the game board, how to adjust its dimensions, what loops are displayed? Short video about these.
+
+https://youtu.be/EfPlOQ42o5E
+
 # CityDefence
 Create a path for defending your base.
 
